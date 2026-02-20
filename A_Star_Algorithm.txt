@@ -1,0 +1,75 @@
+import heapq
+
+N = 3
+
+dx = [0, 0, -1, 1]
+dy = [-1, 1, 0, 0]
+
+def is_valid(x, y):
+    return 0 <= x < N and 0 <= y < N
+
+def is_goal(board):
+    goal = [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 0]
+    ]
+    return board == goal
+
+def manhattan_distance(board):
+    h = 0
+    for i in range(N):
+        for j in range(N):
+            val = board[i][j]
+            if val != 0:
+                goal_row = (val - 1) // N
+                goal_col = (val - 1) % N
+                h += abs(i - goal_row) + abs(j - goal_col)
+    return h
+
+def astar_search(start_board, zero_x, zero_y):
+    pq = []
+    visited = set()
+
+    g_cost = 0
+    h_cost = manhattan_distance(start_board)
+    f_cost = g_cost + h_cost
+
+    heapq.heappush(pq, (f_cost, g_cost, start_board, zero_x, zero_y))
+    visited.add(tuple(map(tuple, start_board)))
+
+    while pq:
+        f_cost, g_cost, board, x, y = heapq.heappop(pq)
+
+        if is_goal(board):
+            print("Solution found at depth:", g_cost)
+            for row in board:
+                print(row)
+            return
+
+        for i in range(4):
+            nx = x + dx[i]
+            ny = y + dy[i]
+
+            if is_valid(nx, ny):
+                new_board = [r[:] for r in board]
+                new_board[x][y], new_board[nx][ny] = new_board[nx][ny], new_board[x][y]
+
+                t = tuple(map(tuple, new_board))
+
+                if t not in visited:
+                    visited.add(t)
+                    new_g = g_cost + 1
+                    new_h = manhattan_distance(new_board)
+                    new_f = new_g + new_h
+                    heapq.heappush(pq, (new_f, new_g, new_board, nx, ny))
+
+    print("No solution found")
+
+start_board = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 0, 8]
+]
+
+astar_search(start_board, 2, 1)

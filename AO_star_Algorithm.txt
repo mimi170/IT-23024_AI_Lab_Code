@@ -1,0 +1,62 @@
+import heapq
+
+goal_state = [1, 2, 3, 4, 5, 6, 7, 8, 0]
+
+def heuristic(state):
+    return sum(1 for i, val in enumerate(state) if val != 0 and val != goal_state[i])
+
+def get_successors(state):
+    successors = []
+    zero_idx = state.index(0)
+    moves = []
+
+    if zero_idx % 3 > 0:
+        moves.append(-1)
+    if zero_idx % 3 < 2:
+        moves.append(1)
+    if zero_idx // 3 > 0:
+        moves.append(-3)
+    if zero_idx // 3 < 2:
+        moves.append(3)
+
+    for move in moves:
+        new_idx = zero_idx + move
+        new_state = state.copy()
+        new_state[zero_idx], new_state[new_idx] = new_state[new_idx], new_state[zero_idx]
+        successors.append(new_state)
+
+    return successors
+
+def ao_star(start):
+    open_list = []
+    heapq.heappush(open_list, (heuristic(start), start, [start]))
+    visited = set()
+
+    while open_list:
+        cost, state, path = heapq.heappop(open_list)
+
+        if state == goal_state:
+            return path, len(path) - 1
+
+        visited.add(tuple(state))
+
+        for succ in get_successors(state):
+            if tuple(succ) not in visited:
+                heapq.heappush(open_list, (heuristic(succ), succ, path + [succ]))
+
+    return None, 0
+
+start_state = [1, 2, 3, 4, 0, 6, 7, 5, 8]
+
+solution_path, steps = ao_star(start_state)
+
+print("Steps to solve:", steps)
+
+if solution_path:
+    for s in solution_path:
+        print(s[:3])
+        print(s[3:6])
+        print(s[6:])
+        print()
+else:
+    print("No solution found")
